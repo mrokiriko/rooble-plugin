@@ -45,7 +45,7 @@ async function fetch_posts_fb(){
 	for (var i = 0; i < els.length; i++){
 
 		var el = els[i];
-		var el_id = el.querySelector('[data-testid="post_message"]').getAttribute('id');
+		var post_id = el.querySelector('[data-testid="post_message"]').getAttribute('id');
 
 
 		// console.log(els[i]);
@@ -54,14 +54,14 @@ async function fetch_posts_fb(){
 		
 		// var el = els[i].children[0];
 
-		if (el_id.includes('ads') != true){
+		if (post_id.includes('ads') != true){
 			// console.log(el);
 			var post_text = el.querySelector('[data-testid="post_message"]').innerText;
 
-			// var post_text = el_id.getElementsByClassName('wall_post_text')[0].innerText; 
-			if (fetched_posts[el_id] == undefined && post_text != ''){
+			// var post_text = post_id.getElementsByClassName('wall_post_text')[0].innerText; 
+			if (fetched_posts[post_id] == undefined && post_text != ''){
 
-				fetched_posts[el_id] = {
+				fetched_posts[post_id] = {
 					text: post_text
 				};
 
@@ -70,10 +70,10 @@ async function fetch_posts_fb(){
 				if (post_parent_id > 0){
 					if (hidden_posts[post_parent_id]){
 
-						console.log('Новость скрыта. ' + el_id);
+						console.log('Новость скрыта. ' + post_id);
 						console.log(post_text);
 
-						// var btn = '<button onclick="document.getElementById(\'' + el_id + '\').style.display = \'block\'; this.style.display = \'none\'; ">SHOW HIDDEN</button>';
+						// var btn = '<button onclick="document.getElementById(\'' + post_id + '\').style.display = \'block\'; this.style.display = \'none\'; ">SHOW HIDDEN</button>';
 						// els[i].insertAdjacentHTML("beforeEnd", btn);
 						// els[i].children[0].style.display = "none";
 
@@ -94,55 +94,75 @@ async function fetch_posts(){
 	var els = document.getElementsByClassName('feed_row');
 	
 	for (var i = 0; i < els.length; i++){
-		var el = els[i].children[0];
-		var el_id = el.getAttribute('id');
+		var post = els[i].children[0];
 
-		if (el_id.includes('ads') != true){
-			// console.log(el);
-			var post_text_block = el.getElementsByClassName('wall_post_text')[0];
 
-			if (post_text_block != undefined){
+		// console.log(post);
+
+		var post_id = post.getAttribute('id');
+		// console.log(post_id);
+
+		if (post_id !== null && post_id.includes('ads') != true){
+			// console.log(post);
+			var post_text_block = post.getElementsByClassName('wall_post_text')[0];
+
+			if (post_text_block !== undefined){
 				var post_text = post_text_block.innerText.trim();
 			}
 
-			// var post_text = el_id.getElementsByClassName('wall_post_text')[0].innerText; 
-			if (fetched_posts[el_id] == undefined && post_text_block != undefined && post_text != ''){
+			// var post_text = post_id.getElementsByClassName('wall_post_text')[0].innerText; 
+			if (fetched_posts[post_id] == undefined && post_text_block != undefined && post_text != ''){
 
-				fetched_posts[el_id] = {
+				fetched_posts[post_id] = {
 					text: post_text
 				};
 
 				var post_parent_id = await checkPost(post_text);
 
 				if (post_parent_id > 0){
+					// remove
+					// hidden_posts[post_parent_id] = true;
+
 					if (hidden_posts[post_parent_id]){
 
 
-						console.log('Новость скрыта. ' + el_id);
+						console.log('Новость скрыта. ' + post_id);
 						console.log(post_text);
 
 
-						// var node = document.createElement("button");
-						// var textnode = document.createTextNode("SHOW HIDDEN NEWS");
-						// node.appendChild(textnode);
-						// node.onclick = function() {document.getElementById(el_id).style.display = 'block';};
-						// node.onclick = function() {alert('clicked');};
+						// var btn = '<button onclick="document.getElementById(\'' + post_id + '\').style.display = \'block\'; this.style.display = \'none\'; ">SHOW HIDDEN</button>';
+						// els[i].insertAdjacentHTML("beforeEnd", btn);
 
-						// var btn = '<button onclick="document.getElementById('+el_id+').style.display = \'block\';">SHOW HIDDEN</button>';
-						// var btn = '<button onclick="hide_news(\''+el_id+'\');">SHOW HIDDEN</button>';
-						// var btn = '<button onclick="alert(document.getElementById(\'' + el_id + '\').innerHTML);">SHOW HIDDEN</button>';
-						var btn = '<button onclick="document.getElementById(\'' + el_id + '\').style.display = \'block\'; this.style.display = \'none\'; ">SHOW HIDDEN</button>';
-
-
-						// console.log(document.getElementById(el_id).innerHTML);
+						// console.log(document.getElementById(post_id).innerHTML);
 
 
 						// els[i].children[0].appendChild(node);
 						// els[i].appendChild(node);
-						els[i].insertAdjacentHTML("beforeEnd", btn);
 
 
-						els[i].children[0].style.display = "none";
+						// els[i].children[0].style.display = "none";
+
+						var post_author = els[i].children[0].getElementsByClassName('author')[0].innerText;
+
+						var command = "document.getElementById('" + post_id + "').getElementsByClassName('post_content')[0].style.display = 'block';";
+						command += "document.getElementById('" + post_id + "').getElementsByClassName('author')[0].innerText = '" + post_author + "';";
+
+						els[i].children[0].getElementsByClassName('_post_content')[0].setAttribute('onclick', 
+							command);
+
+
+						els[i].children[0].getElementsByClassName('post_header')[0].style.padding = '15px 20px 15px';
+
+						els[i].children[0].getElementsByClassName('author')[0].innerText = 'Show similar news';
+						els[i].children[0].getElementsByClassName('post_content')[0].style.display = 'none';
+
+
+						// els[i].children[0].onclick = function() { alert('blah'); };
+
+						// 'alert(12233)');
+
+						// console.log(els[i].children[0].getElementsByClassName('post_author')[0]);
+						
 
 
 					} else {
@@ -212,14 +232,14 @@ async function checkPost(text) {
 // 		// var el = els[i];
 // 		// var el = els[i].[0];
 // 		var el = els[i].children[0];
-// 		var el_id = el.getAttribute('id');
+// 		var post_id = el.getAttribute('id');
 
-// 		if (el_id.includes('ads') != true){
+// 		if (post_id.includes('ads') != true){
 // 			// console.log(el);
 // 			var post_text_block = el.getElementsByClassName('wall_post_text')[0];
 
-// 			// var post_text = el_id.getElementsByClassName('wall_post_text')[0].innerText; 
-// 			if (fetched_posts[el_id] == undefined && post_text_block != undefined){
+// 			// var post_text = post_id.getElementsByClassName('wall_post_text')[0].innerText; 
+// 			if (fetched_posts[post_id] == undefined && post_text_block != undefined){
 // 				var post_text = post_text_block.innerText;
 				
 // 				var post_parent_id = await checkPost(post_text);
@@ -227,7 +247,7 @@ async function checkPost(text) {
 // 				if (typeof fetched_posts[post_parent_id] === 'undefined'){
 					
 // 					console.log('News was added');
-// 					console.log(el_id);
+// 					console.log(post_id);
 // 					console.log(post_text);
 
 // 					fetched_posts[post_parent_id] = {
