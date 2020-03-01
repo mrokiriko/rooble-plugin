@@ -42,6 +42,8 @@ async function fetch_posts_fb(){
 	
 	// console.log(document.getElementById('u_fetchstream_1_0').firstChild.childNodes);
 
+	var posts = [];
+
 	for (var i = 0; i < els.length; i++){
 
 		var el = els[i];
@@ -61,38 +63,72 @@ async function fetch_posts_fb(){
 			// var post_text = post_id.getElementsByClassName('wall_post_text')[0].innerText; 
 			if (fetched_posts[post_id] == undefined && post_text != ''){
 
-				fetched_posts[post_id] = {
+				posts.push({
 					text: post_text
-				};
+				});
 
-				var post_parent_id = await checkPost(post_text);
+				// var post_parent_id = await checkPost(post_text);
 
-				if (post_parent_id > 0){
-					if (hidden_posts[post_parent_id]){
+				// if (post_parent_id > 0){
+				// 	if (hidden_posts[post_parent_id]){
 
-						console.log('Новость скрыта. ' + post_id);
-						console.log(post_text);
+				// 		console.log('Новость скрыта. ' + post_id);
+				// 		console.log(post_text);
 
-						// var btn = '<button onclick="document.getElementById(\'' + post_id + '\').style.display = \'block\'; this.style.display = \'none\'; ">SHOW HIDDEN</button>';
-						// els[i].insertAdjacentHTML("beforeEnd", btn);
-						// els[i].children[0].style.display = "none";
+				// 		// var btn = '<button onclick="document.getElementById(\'' + post_id + '\').style.display = \'block\'; this.style.display = \'none\'; ">SHOW HIDDEN</button>';
+				// 		// els[i].insertAdjacentHTML("beforeEnd", btn);
+				// 		// els[i].children[0].style.display = "none";
 
 
-					} else {
-						hidden_posts[post_parent_id] = true;
-					}					
-				}
+				// 	} else {
+				// 		hidden_posts[post_parent_id] = true;
+				// 	}					
+				// }
 
 				// console.log(fetched_posts);
 				// console.log(hidden_posts);
 			}
 		}
-	}	
+	}
+
+	console.log('posts');
+	console.log(posts);
+
+	var post_ids = await checkPosts(posts);
+
+
+	console.log('post_ids');
+	console.log(post_ids);
+
+	for (var i = 0; i < posts_ids.length; i++){
+		var post_id = post_ids[i];
+
+
+		if (post_id > 0){
+			if (hidden_posts[post_id]){
+
+				console.log('Новость скрыта. ' + post_id);
+				// console.log(post_text);
+
+				// var btn = '<button onclick="document.getElementById(\'' + post_id + '\').style.display = \'block\'; this.style.display = \'none\'; ">SHOW HIDDEN</button>';
+				// els[i].insertAdjacentHTML("beforeEnd", btn);
+				// els[i].children[0].style.display = "none";
+
+
+			} else {
+				hidden_posts[post_id] = true;
+			}					
+
+		}
+	}
+
 }
 
 async function fetch_posts(){
 	var els = document.getElementsByClassName('feed_row');
 	
+	var posts = [];
+
 	for (var i = 0; i < els.length; i++){
 		var post = els[i].children[0];
 
@@ -117,64 +153,135 @@ async function fetch_posts(){
 					text: post_text
 				};
 
-				var post_parent_id = await checkPost(post_text);
-
-				if (post_parent_id > 0){
-					// remove
-					// hidden_posts[post_parent_id] = true;
-
-					if (hidden_posts[post_parent_id]){
-
-
-						console.log('Новость скрыта. ' + post_id);
-						console.log(post_text);
-
-
-						// var btn = '<button onclick="document.getElementById(\'' + post_id + '\').style.display = \'block\'; this.style.display = \'none\'; ">SHOW HIDDEN</button>';
-						// els[i].insertAdjacentHTML("beforeEnd", btn);
-
-						// console.log(document.getElementById(post_id).innerHTML);
-
-
-						// els[i].children[0].appendChild(node);
-						// els[i].appendChild(node);
-
-
-						// els[i].children[0].style.display = "none";
-
-						var post_author = els[i].children[0].getElementsByClassName('author')[0].innerText;
-
-						var command = "document.getElementById('" + post_id + "').getElementsByClassName('post_content')[0].style.display = 'block';";
-						command += "document.getElementById('" + post_id + "').getElementsByClassName('author')[0].innerText = '" + post_author + "';";
-
-						els[i].children[0].getElementsByClassName('_post_content')[0].setAttribute('onclick', 
-							command);
-
-
-						els[i].children[0].getElementsByClassName('post_header')[0].style.padding = '15px 20px 15px';
-
-						els[i].children[0].getElementsByClassName('author')[0].innerText = 'Show similar news';
-						els[i].children[0].getElementsByClassName('post_content')[0].style.display = 'none';
-
-
-						// els[i].children[0].onclick = function() { alert('blah'); };
-
-						// 'alert(12233)');
-
-						// console.log(els[i].children[0].getElementsByClassName('post_author')[0]);
-						
-
-
-					} else {
-						hidden_posts[post_parent_id] = true;
-					}					
-				}
-				// console.log(fetched_posts);
-				// console.log(hidden_posts);
+				posts.push(post_text);
 			}
 		}
-	}	
+	}
+
+	if (posts.length == 0){
+		// console.log('empty');
+		return false;
+	}
+	// else {
+	// 	console.log('ALL posts');
+	// 	console.log(posts);
+	// }
+
+	var response = await checkPosts(posts);
+
+	// console.log('response');
+	// console.log(response);
+
+	for (var i = 0; i < response.length; i++){
+
+		// console.log('response');
+		// console.log(response[0]);
+
+		if (response[i].success != 'True'){
+			continue;
+		}
+
+		var post_id = response[i].msg;
+
+		// console.log(post_id);
+
+		if (post_id > 0){
+			// remove
+			// hidden_posts[post_parent_id] = true;
+
+			if (hidden_posts[post_id]){
+
+				var el = els[i];
+
+				console.log('Новость скрыта. ' + post_id);
+				console.log(el);
+
+				// create hidden button 
+				var post_author = el.children[0].getElementsByClassName('author')[0].innerText;
+				var command = "document.getElementById('" + post_id + "').getElementsByClassName('post_content')[0].style.display = 'block';";
+				command += "document.getElementById('" + post_id + "').getElementsByClassName('author')[0].innerText = '" + post_author + "';";
+
+				el.children[0].getElementsByClassName('_post_content')[0].setAttribute('onclick', command);
+				el.children[0].getElementsByClassName('post_header')[0].style.padding = '15px 20px 15px';
+				el.children[0].getElementsByClassName('author')[0].innerText = 'Show similar news';
+				el.children[0].getElementsByClassName('post_content')[0].style.display = 'none';
+
+			} else {
+				hidden_posts[post_id] = true;
+				// console.log('hidden_posts');
+				// console.log(hidden_posts);
+			}					
+		}
+		
+	}
+	// console.log(fetched_posts);
+	// console.log(hidden_posts);
+
 }
+
+
+async function checkPosts(posts) {
+	// var link = 'https://gtusur.pythonanywhere.com/api/articles';
+
+
+// console.log('check Posts');
+// console.log(posts);
+
+	var link = 'https://gtusur.pythonanywhere.com/api/articles/';
+	try {
+		// const response = await axios.post(link, {
+		// const response = await axios.get(link,{
+		// 	headers: {
+
+		// 	}
+		// });
+		
+		texts = [];
+
+		for (var i = 0; i < posts.length; i++){
+		
+			texts.push({
+				text: posts[i]
+			})
+
+		}
+
+		// console.log('texts');
+		// console.log(texts);
+
+		const response = await axios({
+			method: 'post',
+			url: link,
+			data: {
+				articles: texts
+				// [
+					// {
+					// 	text: text
+					// },
+					// {
+					// 	text: text
+					// }
+				// ]
+			},
+			auth: {
+			    username: 'lazy',
+			    password: 'hong-kong'
+			}
+		});
+
+		// console.log('RESPONSE');
+		// console.log(response.data);
+
+		return response.data;
+		//return response.data.data;
+	} catch (error) {
+		console.log('ERROR');
+		console.log(error);
+		return -1;
+	}
+}
+
+// console.log(checkPosts(['123', '312', '123']));
 
 async function checkPost(text) {
 	// var link = 'https://gtusur.pythonanywhere.com/api/articles';
@@ -223,56 +330,3 @@ async function checkPost(text) {
 		return -1;
 	}
 }
-
-// async function fetch_post_ids(){
-
-// 	var els = document.getElementsByClassName('feed_row');
-
-// 	for (var i = 0; i < els.length; i++){
-// 		// var el = els[i];
-// 		// var el = els[i].[0];
-// 		var el = els[i].children[0];
-// 		var post_id = el.getAttribute('id');
-
-// 		if (post_id.includes('ads') != true){
-// 			// console.log(el);
-// 			var post_text_block = el.getElementsByClassName('wall_post_text')[0];
-
-// 			// var post_text = post_id.getElementsByClassName('wall_post_text')[0].innerText; 
-// 			if (fetched_posts[post_id] == undefined && post_text_block != undefined){
-// 				var post_text = post_text_block.innerText;
-				
-// 				var post_parent_id = await checkPost(post_text);
-
-// 				if (typeof fetched_posts[post_parent_id] === 'undefined'){
-					
-// 					console.log('News was added');
-// 					console.log(post_id);
-// 					console.log(post_text);
-
-// 					fetched_posts[post_parent_id] = {
-// 						text: post_text
-// 					};
-
-// 					console.log('fetched_posts');
-// 					console.log(fetched_posts);
-// 				} else {
-// 					console.log('СКРОЙСЯ НАХУЙ');
-// 				}
-
-// 			}
-// 		}
-
-// 	    // if (!fetched_posts.includes(el)){
-//     	// 	fetched_posts.push(el);
-// 		   //  console.log(el);
-// 	    // }
-// 	}	
-// }
-
-// window.onload = function()
-// {
-// 	 $('div.wall_post_text').load(function() {
-// 	   alert('This element loaded.');
-// 	});
-// }
