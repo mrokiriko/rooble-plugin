@@ -1,153 +1,50 @@
-// const axios = require('axios');
-
 chrome.extension.sendMessage({}, function(response) {
 
-	var readyStateCheckInterval = setInterval(function() {
+	// ToDo use event or listener
+	let readyStateCheckInterval = setInterval(function() {
 		if (document.readyState === "complete") {
 			clearInterval(readyStateCheckInterval);
 
 			console.log("Расчехляю свой полифон...");
 
-			if (window.location.href.indexOf('vk') != -1){
+			if (window.location.href.indexOf('vk.com') !== -1){
 				console.log('its VK');
-				setInterval(fetch_posts, 1000);
+				setInterval(hide_similar_posts, 1000);
 			} else {
-				console.log('its FB');
-
-				setInterval(fetch_posts_fb, 1000);
-
+				console.log('its not VK');
 			}
-
-			// setInterval(fetch_post_ids, 1000);
-
-			// fetch_posts();
-
-
 		}
 	}, 10);
+
 });
 
-var fetched_posts = {};
-
-var hidden_posts = {};
+let fetched_posts = {};
+let hidden_posts = {};
 
 function hide_news(post_id){
 	console.log(post_id);
 	alert(post_id);
 }
 
-async function fetch_posts_fb(){
-
-	var els = document.getElementById('u_fetchstream_1_0').firstChild.childNodes;
+async function hide_similar_posts(){
+	let post_elements = document.getElementsByClassName('feed_row');
 	
-	// console.log(document.getElementById('u_fetchstream_1_0').firstChild.childNodes);
+	let posts = [];
 
-	var posts = [];
+	for (let i = 0; i < post_elements.length; i++){
+		let post = post_elements[i].children[0];
 
-	for (var i = 0; i < els.length; i++){
+		let post_id = post.getAttribute('id');
 
-		var el = els[i];
-		var post_id = el.querySelector('[data-testid="post_message"]').getAttribute('id');
+		if (post_id !== null && post_id.includes('ads') !== true){
+			let post_text = post.getElementsByClassName('wall_post_text')[0];
 
-
-		// console.log(els[i]);
-		// console.log(el.querySelector('[data-testid="post_message"]'));
-		// console.log(el.querySelector('[data-testid="post_message"]').innerText);
-		
-		// var el = els[i].children[0];
-
-		if (post_id.includes('ads') != true){
-			// console.log(el);
-			var post_text = el.querySelector('[data-testid="post_message"]').innerText;
-
-			// var post_text = post_id.getElementsByClassName('wall_post_text')[0].innerText; 
-			if (fetched_posts[post_id] == undefined && post_text != ''){
-
-				posts.push({
-					text: post_text
-				});
-
-				// var post_parent_id = await checkPost(post_text);
-
-				// if (post_parent_id > 0){
-				// 	if (hidden_posts[post_parent_id]){
-
-				// 		console.log('Новость скрыта. ' + post_id);
-				// 		console.log(post_text);
-
-				// 		// var btn = '<button onclick="document.getElementById(\'' + post_id + '\').style.display = \'block\'; this.style.display = \'none\'; ">SHOW HIDDEN</button>';
-				// 		// els[i].insertAdjacentHTML("beforeEnd", btn);
-				// 		// els[i].children[0].style.display = "none";
-
-
-				// 	} else {
-				// 		hidden_posts[post_parent_id] = true;
-				// 	}					
-				// }
-
-				// console.log(fetched_posts);
-				// console.log(hidden_posts);
-			}
-		}
-	}
-
-	console.log('posts');
-	console.log(posts);
-
-	var post_ids = await checkPosts(posts);
-
-
-	console.log('post_ids');
-	console.log(post_ids);
-
-	for (var i = 0; i < posts_ids.length; i++){
-		var post_id = post_ids[i];
-
-
-		if (post_id > 0){
-			if (hidden_posts[post_id]){
-
-				console.log('Новость скрыта. ' + post_id);
-				// console.log(post_text);
-
-				// var btn = '<button onclick="document.getElementById(\'' + post_id + '\').style.display = \'block\'; this.style.display = \'none\'; ">SHOW HIDDEN</button>';
-				// els[i].insertAdjacentHTML("beforeEnd", btn);
-				// els[i].children[0].style.display = "none";
-
-
-			} else {
-				hidden_posts[post_id] = true;
-			}					
-
-		}
-	}
-
-}
-
-async function fetch_posts(){
-	var els = document.getElementsByClassName('feed_row');
-	
-	var posts = [];
-
-	for (var i = 0; i < els.length; i++){
-		var post = els[i].children[0];
-
-
-		// console.log(post);
-
-		var post_id = post.getAttribute('id');
-		// console.log(post_id);
-
-		if (post_id !== null && post_id.includes('ads') != true){
-			// console.log(post);
-			var post_text_block = post.getElementsByClassName('wall_post_text')[0];
-
-			if (post_text_block !== undefined){
-				var post_text = post_text_block.innerText.trim();
+			// ToDo remove spaces
+			if (post_text !== undefined){
+				post_text = post_text.innerText.trim();
 			}
 
-			// var post_text = post_id.getElementsByClassName('wall_post_text')[0].innerText; 
-			if (fetched_posts[post_id] == undefined && post_text_block != undefined && post_text != ''){
+			if (fetched_posts[post_id] === undefined && post_text !== undefined && post_text !== ''){
 
 				fetched_posts[post_id] = {
 					text: post_text
@@ -158,47 +55,32 @@ async function fetch_posts(){
 		}
 	}
 
-	if (posts.length == 0){
-		// console.log('empty');
+	if (posts.length === 0){
 		return false;
 	}
-	// else {
-	// 	console.log('ALL posts');
-	// 	console.log(posts);
-	// }
 
-	var response = await checkPosts(posts);
+	let response = await checkPosts(posts);
 
-	// console.log('response');
-	// console.log(response);
+	for (let i = 0; i < response.length; i++){
 
-	for (var i = 0; i < response.length; i++){
-
-		// console.log('response');
-		// console.log(response[0]);
-
-		if (response[i].success != 'True'){
+		if (response[i].success !== 'True'){
 			continue;
 		}
 
-		var post_id = response[i].msg;
-
-		// console.log(post_id);
+		let post_id = response[i].msg;
 
 		if (post_id > 0){
-			// remove
-			// hidden_posts[post_parent_id] = true;
 
 			if (hidden_posts[post_id]){
 
-				var el = els[i];
+				let el = post_elements[i];
 
 				console.log('Новость скрыта. ' + post_id);
 				console.log(el);
 
 				// create hidden button 
-				var post_author = el.children[0].getElementsByClassName('author')[0].innerText;
-				var command = "document.getElementById('" + post_id + "').getElementsByClassName('post_content')[0].style.display = 'block';";
+				let post_author = el.children[0].getElementsByClassName('author')[0].innerText;
+				let command = "document.getElementById('" + post_id + "').getElementsByClassName('post_content')[0].style.display = 'block';";
 				command += "document.getElementById('" + post_id + "').getElementsByClassName('author')[0].innerText = '" + post_author + "';";
 
 				el.children[0].getElementsByClassName('_post_content')[0].setAttribute('onclick', command);
@@ -208,60 +90,31 @@ async function fetch_posts(){
 
 			} else {
 				hidden_posts[post_id] = true;
-				// console.log('hidden_posts');
-				// console.log(hidden_posts);
-			}					
+			}
 		}
 		
 	}
-	// console.log(fetched_posts);
-	// console.log(hidden_posts);
-
 }
 
 
 async function checkPosts(posts) {
-	// var link = 'https://gtusur.pythonanywhere.com/api/articles';
 
+	let link = 'https://gtusur.pythonanywhere.com/api/articles/';
 
-// console.log('check Posts');
-// console.log(posts);
-
-	var link = 'https://gtusur.pythonanywhere.com/api/articles/';
 	try {
-		// const response = await axios.post(link, {
-		// const response = await axios.get(link,{
-		// 	headers: {
-
-		// 	}
-		// });
-		
 		texts = [];
 
-		for (var i = 0; i < posts.length; i++){
-		
+		for (let i = 0; i < posts.length; i++){
 			texts.push({
 				text: posts[i]
 			})
-
 		}
-
-		// console.log('texts');
-		// console.log(texts);
 
 		const response = await axios({
 			method: 'post',
 			url: link,
 			data: {
 				articles: texts
-				// [
-					// {
-					// 	text: text
-					// },
-					// {
-					// 	text: text
-					// }
-				// ]
 			},
 			auth: {
 			    username: 'lazy',
@@ -269,11 +122,7 @@ async function checkPosts(posts) {
 			}
 		});
 
-		// console.log('RESPONSE');
-		// console.log(response.data);
-
 		return response.data;
-		//return response.data.data;
 	} catch (error) {
 		console.log('ERROR');
 		console.log(error);
@@ -281,18 +130,9 @@ async function checkPosts(posts) {
 	}
 }
 
-// console.log(checkPosts(['123', '312', '123']));
-
 async function checkPost(text) {
-	// var link = 'https://gtusur.pythonanywhere.com/api/articles';
-	var link = 'https://gtusur.pythonanywhere.com/api/articles/';
+	let link = 'https://gtusur.pythonanywhere.com/api/articles/';
 	try {
-		// const response = await axios.post(link, {
-		// const response = await axios.get(link,{
-		// 	headers: {
-
-		// 	}
-		// });
 		const response = await axios({
 			method: 'post',
 			url: link,
@@ -306,24 +146,6 @@ async function checkPost(text) {
 			    password: 'hong-kong'
 			}
 		});
-
-		// const response = await axios.post(link, {
-		// 	params: {
-				// article: {
-				// 	title: '',
-				// 	text: text
-				// }
-		// 	},
-			// auth: {
-			//     username: 'lazy_ass',
-			//     password: 'hong-kong'
-			// }
-		// });
-
-
-		// console.log('response.data');
-		// console.log(response.data);
-
 		return response.data.data;
 	} catch (error) {
 		console.log(error);
