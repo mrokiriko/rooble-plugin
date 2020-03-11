@@ -2,31 +2,42 @@ let fetched_posts = {};
 let hidden_posts = {};
 
 chrome.extension.sendMessage({}, function(response) {
+    if (window.location.href.indexOf('vk.com') === -1){
+        console.log('its not VK');
+        return null;
+    }
 
-	// ToDo use event or listener
-	let readyStateCheckInterval = setInterval(function() {
-		if (document.readyState === "complete") {
-			clearInterval(readyStateCheckInterval);
+    console.log("Расчехляю свой полифон...");
 
-			console.log("Расчехляю свой полифон...");
+    hidden_posts = JSON.parse(localStorage.getItem('hidden'));
 
-			hidden_posts = JSON.parse(localStorage.getItem('hidden'));
+    if (hidden_posts == null){
+        hidden_posts = {};
+    }
 
-			if (hidden_posts == null){
-				hidden_posts = {};
-			}
+    console.log('hidden_posts');
+    console.log(hidden_posts);
 
-			console.log('hidden_posts');
-			console.log(hidden_posts);
+    let observer = new MutationObserver(async el => {
+        if (el[0].target.className === '_feed_rows') {
 
-			if (window.location.href.indexOf('vk.com') !== -1){
-				console.log('its VK');
-				setInterval(hide_similar_posts, 1000);
-			} else {
-				console.log('its not VK');
-			}
-		}
-	}, 10);
+            let post_elements = [];
+
+            for (let i = 0; i < el.length; i++) {
+                let post = el[i].addedNodes[0];
+                post_elements.push(post);
+            }
+
+            await hide_similar_posts(post_elements);
+        }
+    });
+
+    const post_selector = document.querySelector("._feed_rows");
+    observer.observe(post_selector, {
+        childList: true, // наблюдать за непосредственными детьми
+        subtree: true, // и более глубокими потомками
+        characterDataOldValue: true // передавать старое значение в колбэк
+    });
 
 });
 
@@ -99,8 +110,8 @@ function create_hide_post_button(el){
 	el.getElementsByClassName('post_content')[0].style.display = 'none';
 }
 
-async function hide_similar_posts(){
-	let post_elements = document.getElementsByClassName('feed_row');
+async function hide_similar_posts(post_elements){
+
 	let posts = get_and_fetch_page_posts(post_elements);
 
 	let post_texts = [];
@@ -126,7 +137,6 @@ async function hide_similar_posts(){
 	let response = await checkPosts(post_texts);
 	hide_posts(response, posts);
 }
-
 
 async function checkPosts(posts) {
 
@@ -156,29 +166,6 @@ async function checkPosts(posts) {
 		return response.data;
 	} catch (error) {
 		console.log('ERROR');
-		console.log(error);
-		return -1;
-	}
-}
-
-async function checkPost(text) {
-	let link = 'https://gtusur.pythonanywhere.com/api/articles/';
-	try {
-		const response = await axios({
-			method: 'post',
-			url: link,
-			data: {
-				article: {
-					text: text
-				}
-			},
-			auth: {
-			    username: 'lazy',
-			    password: 'hong-kong'
-			}
-		});
-		return response.data.data;
-	} catch (error) {
 		console.log(error);
 		return -1;
 	}
