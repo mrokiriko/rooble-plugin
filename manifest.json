@@ -1,9 +1,9 @@
 {
-  "name": "CHANGE THIS : Extension boilerplate",
-  "version": "0.0.1",
+  "name": "Rooble plugin",
+  "version": "1",
   "manifest_version": 2,
-  "description": "This extension was created with the awesome extensionizr.com",
-  "homepage_url": "http://extensionizr.com",
+  "description": "Hide unnecessary from VK",
+  "homepage_url": "http://kachalov.xyz",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -16,7 +16,7 @@
   },
   "page_action": {
     "default_icon": "icons/icon19.png",
-    "default_title": "page action demo",
+    "default_title": "Rooble",
     "default_popup": "src/page_action/page_action.html"
   },
   "content_scripts": [
@@ -30,8 +30,7 @@
     },
     {
       "matches": [
-        "https://vk.com/feed",
-        "https://www.facebook.com/"
+        "https://vk.com/feed"
       ],
       "js": [
         "src/inject/inject.js",
