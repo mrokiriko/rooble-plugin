@@ -1,5 +1,6 @@
 let fetched_posts = {};
 let hidden_posts = {};
+let hide_ad_posts = true;
 
 chrome.extension.sendMessage({}, function(response) {
     if (window.location.href.indexOf('vk.com') === -1){
@@ -72,8 +73,18 @@ function get_and_fetch_page_posts(post_elements){
 }
 
 function hide_posts(response, post_elements){
-	for (let i = 0; i < response.length; i++){
+	// ToDo plugin settings
+	if (hide_ad_posts){
+		for (let i = 0; i < response.length; i++) {
+			let el = post_elements[i];
+			let el_class = el.getAttribute('class');
+			if (el_class.includes('ads')){
+				create_hide_post_button(el);
+			}
+		}
+	}
 
+	for (let i = 0; i < response.length; i++){
 		if (response[i].success !== true)
 			continue;
 
@@ -114,19 +125,22 @@ async function hide_similar_posts(post_elements){
 
 	let posts = get_and_fetch_page_posts(post_elements);
 
+	let post_els = [];
 	let post_texts = [];
 
 	for (let i = 0; i < posts.length; i++){
 		let post = posts[i];
 		let post_id = post.getAttribute('id');
+		let post_class = post.getAttribute('class');
 
-		if (post_id !== null && post_id.includes('ads') !== true){
+		if (post_id !== null && post_id.includes('ads') !== true && post_class !== null && post_class.includes('ads') !== true){
 			let post_text = post.getElementsByClassName('wall_post_text')[0];
 
 			// ToDo remove spaces
 			if (post_text !== undefined)
 				post_text = post_text.innerText.trim();
 
+			post_els.push(post);
 			post_texts.push(post_text);
 		}
 	}
@@ -135,7 +149,7 @@ async function hide_similar_posts(post_elements){
 		return false;
 
 	let response = await checkPosts(post_texts);
-	hide_posts(response, posts);
+	hide_posts(response, post_els);
 }
 
 async function checkPosts(posts) {
