@@ -30,7 +30,8 @@
     },
     {
       "matches": [
-        "https://vk.com/feed"
+        "https://vk.com/feed",
+        "https://vk.com/al_feed.php"
       ],
       "js": [
         "src/inject/inject.js",
