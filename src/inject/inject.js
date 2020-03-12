@@ -1,8 +1,8 @@
 let fetched_posts = {};
 let hidden_posts = {};
-let hide_ad_posts = true;
+let hide_ad_parameter = true;
 
-chrome.extension.sendMessage({}, function(response) {
+chrome.extension.sendMessage({}, async function(response) {
     if (window.location.href.indexOf('vk.com') === -1){
         console.log('its not VK');
         return null;
@@ -18,6 +18,9 @@ chrome.extension.sendMessage({}, function(response) {
 
     console.log('hidden_posts');
     console.log(hidden_posts);
+
+    let post_elements = document.getElementsByClassName('feed_row');
+    await hide_similar_posts(post_elements);
 
     let observer = new MutationObserver(async el => {
         if (el[0].target.className === '_feed_rows') {
@@ -73,16 +76,6 @@ function get_and_fetch_page_posts(post_elements){
 }
 
 function hide_posts(response, post_elements){
-	// ToDo plugin settings
-	if (hide_ad_posts){
-		for (let i = 0; i < response.length; i++) {
-			let el = post_elements[i];
-			let el_class = el.getAttribute('class');
-			if (el_class.includes('ads')){
-				create_hide_post_button(el);
-			}
-		}
-	}
 
 	for (let i = 0; i < response.length; i++){
 		if (response[i].success !== true)
@@ -122,7 +115,6 @@ function create_hide_post_button(el){
 }
 
 async function hide_similar_posts(post_elements){
-
 	let posts = get_and_fetch_page_posts(post_elements);
 
 	let post_els = [];
@@ -145,11 +137,26 @@ async function hide_similar_posts(post_elements){
 		}
 	}
 
-	if (post_texts.length === 0)
+    if (hide_ad_parameter) {
+        hide_ad_posts(posts)
+    }
+
+    if (post_texts.length === 0)
 		return false;
 
 	let response = await checkPosts(post_texts);
 	hide_posts(response, post_els);
+}
+
+function hide_ad_posts(posts){
+    // ToDo plugin settings
+    for (let i = 0; i < posts.length; i++) {
+        let el = posts[i];
+        let el_class = el.getAttribute('class');
+        if (el_class.includes('ads')){
+            create_hide_post_button(el);
+        }
+    }
 }
 
 async function checkPosts(posts) {
