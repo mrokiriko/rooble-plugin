@@ -19,24 +19,21 @@
     "default_title": "Rooble",
     "default_popup": "src/page_action/page_action.html"
   },
+  "permissions": [
+    "https://gtusur.pythonanywhere.com/api/articles/"
+  ],
   "content_scripts": [
-    {
-      "matches": [
-        "https://vk.com/feed"
-      ],
-      "css": [
-        "src/inject/inject.css"
-      ]
-    },
     {
       "matches": [
         "https://vk.com/feed",
         "https://vk.com/al_feed.php"
       ],
+      "css": [
+        "src/inject/inject.css"
+      ],
       "js": [
-        "src/inject/inject.js",
         "js/jquery/jquery.js",
-        "js/axios.min.js"
+        "src/inject/inject.js"
       ]
     }
   ]

@@ -2,48 +2,52 @@ let fetched_posts = {};
 let hidden_posts = {};
 let hide_ad_parameter = true;
 
-chrome.extension.sendMessage({}, async function(response) {
-    if (window.location.href.indexOf('vk.com') === -1){
-        console.log('its not VK');
-        return null;
-    }
+console.log('inject JS');
 
-    console.log("Расчехляю свой полифон...");
+const main = async () => {
 
-    hidden_posts = JSON.parse(localStorage.getItem('hidden'));
+	if (window.location.href.indexOf('vk.com') === -1){
+		console.log('its not VK');
+		return null;
+	}
 
-    if (hidden_posts == null){
-        hidden_posts = {};
-    }
+	hidden_posts = JSON.parse(localStorage.getItem('hidden'));
 
-    console.log('hidden_posts');
-    console.log(hidden_posts);
+	if (hidden_posts == null){
+		hidden_posts = {};
+	}
 
-    let post_elements = document.getElementsByClassName('feed_row');
-    await hide_similar_posts(post_elements);
+	console.log('hidden_posts');
+	console.log(hidden_posts);
 
-    let observer = new MutationObserver(async el => {
-        if (el[0].target.className === '_feed_rows') {
+	let post_elements = document.getElementsByClassName('feed_row');
+	await hide_similar_posts(post_elements);
 
-            let post_elements = [];
+	let observer = new MutationObserver(async el => {
 
-            for (let i = 0; i < el.length; i++) {
-                let post = el[i].addedNodes[0];
-                post_elements.push(post);
-            }
+		if (el[0].target.className === '_feed_rows') {
 
-            await hide_similar_posts(post_elements);
-        }
-    });
+			let post_elements = [];
 
-    const post_selector = document.querySelector("._feed_rows");
-    observer.observe(post_selector, {
-        childList: true, // наблюдать за непосредственными детьми
-        subtree: true, // и более глубокими потомками
-        characterDataOldValue: true // передавать старое значение в колбэк
-    });
+			for (let i = 0; i < el.length; i++) {
+				let post = el[i].addedNodes[0];
+				post_elements.push(post);
+			}
 
-});
+			await hide_similar_posts(post_elements);
+		}
+	});
+
+	const post_selector = document.querySelector("._feed_rows");
+	observer.observe(post_selector, {
+		childList: true, // наблюдать за непосредственными детьми
+		subtree: true, // и более глубокими потомками
+		characterDataOldValue: true // передавать старое значение в колбэк
+	});
+
+};
+
+main().then(r => {});
 
 function get_and_fetch_page_posts(post_elements){
 	let posts = [];
@@ -172,19 +176,23 @@ async function checkPosts(posts) {
 			})
 		}
 
-		const response = await axios({
-			method: 'post',
-			url: link,
-			data: {
-				articles: texts
-			},
-			auth: {
-			    username: 'lazy',
-			    password: 'hong-kong'
-			}
-		});
+		let data = {
+			articles: texts
+		};
 
-		return response.data;
+		return $.ajax({
+			contentType: 'application/json; charset=utf-8',
+			dataType: 'json',
+			url: link,
+			type: "POST",
+			data: JSON.stringify(data),
+			auth: {
+				username: 'lazy',
+				password: 'hong-kong'
+			}
+		}).done(function (response) {
+			return response.data;
+		});
 	} catch (error) {
 		console.log('ERROR');
 		console.log(error);
