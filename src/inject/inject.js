@@ -2,12 +2,9 @@ let fetched_posts = {};
 let hidden_posts = {};
 let hide_ad_parameter = true;
 
-console.log('inject JS');
-
 const main = async () => {
 
 	if (window.location.href.indexOf('vk.com') === -1){
-		console.log('its not VK');
 		return null;
 	}
 
@@ -16,9 +13,6 @@ const main = async () => {
 	if (hidden_posts == null){
 		hidden_posts = {};
 	}
-
-	console.log('hidden_posts');
-	console.log(hidden_posts);
 
 	let post_elements = document.getElementsByClassName('feed_row');
 	await hide_similar_posts(post_elements);
@@ -40,9 +34,9 @@ const main = async () => {
 
 	const post_selector = document.querySelector("._feed_rows");
 	observer.observe(post_selector, {
-		childList: true, // наблюдать за непосредственными детьми
-		subtree: true, // и более глубокими потомками
-		characterDataOldValue: true // передавать старое значение в колбэк
+		childList: true,
+		subtree: true,
+		characterDataOldValue: true
 	});
 
 };
@@ -54,6 +48,10 @@ function get_and_fetch_page_posts(post_elements){
 
 	for (let i = 0; i < post_elements.length; i++){
 		let post = post_elements[i].children[0];
+
+		if (post === undefined){
+			continue;
+		}
 
 		let post_id = post.getAttribute('id');
 
@@ -91,8 +89,6 @@ function hide_posts(response, post_elements){
 			if (hidden_posts[post_id]){
 
 				let el = post_elements[i];
-				console.log('Новость скрыта. ' + post_id);
-				console.log(el);
 
 				create_hide_post_button(el);
 			} else {

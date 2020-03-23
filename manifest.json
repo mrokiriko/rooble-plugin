@@ -1,6 +1,6 @@
 {
   "name": "Rooble plugin",
-  "version": "1",
+  "version": "0.0.0.1",
   "manifest_version": 2,
   "description": "Hide unnecessary from VK",
   "homepage_url": "http://kachalov.xyz",
@@ -9,19 +9,14 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "default_locale": "en",
   "background": {
     "page": "src/bg/background.html",
     "persistent": true
   },
   "page_action": {
     "default_icon": "icons/icon19.png",
-    "default_title": "Rooble",
-    "default_popup": "src/page_action/page_action.html"
+    "default_title": "Rooble"
   },
-  "permissions": [
-    "https://gtusur.pythonanywhere.com/api/articles/"
-  ],
   "content_scripts": [
     {
       "matches": [
