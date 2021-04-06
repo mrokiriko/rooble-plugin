@@ -4,6 +4,14 @@ let hide_ad_parameter = true;
 
 const main = async () => {
 
+
+	// if (typeof jQuery != 'undefined') {  
+	//     // jQuery is loaded => print the version
+	//     alert(jQuery.fn.jquery);
+	// } else {
+	// 	alert('u have got no jquery!');
+	// }
+
 	if (window.location.href.indexOf('vk.com') === -1){
 		return null;
 	}
@@ -32,13 +40,13 @@ const main = async () => {
 		}
 	});
 
+
 	const post_selector = document.querySelector("._feed_rows");
 	observer.observe(post_selector, {
 		childList: true,
 		subtree: true,
 		characterDataOldValue: true
-	});
-
+	});	
 };
 
 main().then(r => {});
@@ -47,6 +55,10 @@ function get_and_fetch_page_posts(post_elements){
 	let posts = [];
 
 	for (let i = 0; i < post_elements.length; i++){
+		if (post_elements[i] === undefined){
+			continue;
+		}
+
 		let post = post_elements[i].children[0];
 
 		if (post === undefined){
@@ -78,6 +90,9 @@ function get_and_fetch_page_posts(post_elements){
 }
 
 function hide_posts(response, post_elements){
+
+	console.log('response');
+	console.log(response);
 
 	for (let i = 0; i < response.length; i++){
 		if (response[i].success !== true)
@@ -115,15 +130,38 @@ function create_hide_post_button(el){
 }
 
 async function hide_similar_posts(post_elements){
-	let posts = get_and_fetch_page_posts(post_elements);
 
+	let posts = get_and_fetch_page_posts(post_elements);
 	let post_els = [];
-	let post_texts = [];
+	let post_blocks = [];
 
 	for (let i = 0; i < posts.length; i++){
 		let post = posts[i];
 		let post_id = post.getAttribute('id');
 		let post_class = post.getAttribute('class');
+		let image_url = '';
+		let tags = post.getElementsByTagName('a');
+		for (let j = 0; j < tags.length; j++){
+			tag = tags[j]
+			if (tag.hasAttribute('style')){
+
+				let url = tag.getAttribute('style')
+				
+				let from = url.indexOf('url(');
+				
+				if (from > 0){
+					from += 4;
+					url = url.substring(from, url.length - 2);
+
+					// console.log(url);
+					image_url = url;
+
+					break; // get only first picture					
+				}
+
+			}
+		}
+
 
 		if (post_id !== null && post_id.includes('ads') !== true && post_class !== null && post_class.includes('ads') !== true){
 			let post_text = post.getElementsByClassName('wall_post_text')[0];
@@ -133,7 +171,13 @@ async function hide_similar_posts(post_elements){
 				post_text = post_text.innerText.trim();
 
 			post_els.push(post);
-			post_texts.push(post_text);
+
+			let block = {
+				text: post_text,
+				image: image_url
+			}
+
+			post_blocks.push(block);
 		}
 	}
 
@@ -141,10 +185,11 @@ async function hide_similar_posts(post_elements){
         hide_ad_posts(posts)
     }
 
-    if (post_texts.length === 0)
+    if (post_blocks.length === 0)
 		return false;
 
-	let response = await checkPosts(post_texts);
+	let response = await checkPosts(post_blocks);
+
 	hide_posts(response, post_els);
 }
 
@@ -161,14 +206,16 @@ function hide_ad_posts(posts){
 
 async function checkPosts(posts) {
 
-	let link = 'https://gtusur.pythonanywhere.com/api/articles/';
+	// let link = 'https://kachalov.xyz/api/articles/';
+	let link = 'http://46.101.104.158:8000/api/articles/';
 
 	try {
 		let texts = [];
 
 		for (let i = 0; i < posts.length; i++){
 			texts.push({
-				text: posts[i]
+				text: posts[i].text,
+				image: posts[i].image
 			})
 		}
 
@@ -182,13 +229,33 @@ async function checkPosts(posts) {
 			url: link,
 			type: "POST",
 			data: JSON.stringify(data),
-			auth: {
-				username: 'lazy',
-				password: 'hong-kong'
-			}
-		}).done(function (response) {
-			return response.data;
+		    success : function(response) {
+		    	return response;
+		    },
+		    error : function(request, status, error ) {
+		        if (request.status == 429) {
+	        		console.log('its you again');
+		        } else {
+		        	console.log('other stupid error');
+		        }
+		        return [];
+		    }
 		});
+
+		// return $.ajax({
+		// 	contentType: 'application/json; charset=utf-8',
+		// 	dataType: 'json',
+		// 	url: link,
+		// 	type: "POST",
+		// 	data: JSON.stringify(data)
+		// }).done(function (response) {
+		// 	return response;
+		// }).fail(function (response) {
+		// 	console.log('baaaad');
+		// 	return [];
+		// });
+
+
 	} catch (error) {
 		console.log('ERROR');
 		console.log(error);

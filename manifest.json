@@ -27,7 +27,8 @@
         "src/inject/inject.css"
       ],
       "js": [
-        "js/jquery/jquery.js",
+        // "js/jquery/jquery.js",
+        "js/jquery/jquery-3.5.1.min.js",
         "src/inject/inject.js"
       ]
     }

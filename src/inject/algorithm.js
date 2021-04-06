@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-var link = 'http://qruk000.pythonanywhere.com/api/article';
+// var link = 'http://qruk000.pythonanywhere.com/api/article';
 
 // axios.get('https://httpbin.org/get', {
 //     // params: {
